@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: ecService
+  datasource:
+    url: jdbc:postgresql://localhost:5432/ecdb
+    username: user_mingmy00
+    password: Aldvhtm0216!
+    driver-class-name: org.postgresql.Driver
