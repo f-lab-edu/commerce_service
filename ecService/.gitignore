@@ -26,6 +26,9 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
+### MacOS ###
+.DS_Store
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -35,3 +38,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 환경 변수 파일 ###
+src/main/resources/env.csv
+src/main/resources/application.yml
