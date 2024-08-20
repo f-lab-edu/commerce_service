@@ -32,15 +32,13 @@ public class OrderEntity {
     public void processOrder() {
         if (productEntity.getProductStock() >= quantity) {
             productEntity.reduceStock(quantity);
-            log.info("주문 완료 : ordId={}" ,ordId);
-
         } else {
-            log.info("재고 부족");
+            log.debug("재고 부족");
         }
     }
 
     public void pay() {
         this.isPaid = true;
-        log.info("결제 완료");
+        log.debug("결제 완료");
     }
 }

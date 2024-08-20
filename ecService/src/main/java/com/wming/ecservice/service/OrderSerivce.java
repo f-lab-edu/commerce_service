@@ -25,6 +25,7 @@ public class OrderSerivce {
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다."));
 
         OrderEntity orderEntity = new OrderEntity(productEntity , quantity);
+        orderEntity.processOrder();
         orderRepository.save(orderEntity);
 
         this.payOrder(orderEntity.getOrdId());
