@@ -2,13 +2,16 @@ package com.wming.ecservice.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Entity
+@Slf4j
 public class OrderEntity {
 
     @Id
@@ -29,14 +32,15 @@ public class OrderEntity {
     public void processOrder() {
         if (productEntity.getProductStock() >= quantity) {
             productEntity.reduceStock(quantity);
-            System.out.println("주문이 완료되었습니다.");
+            log.info("주문 완료 : ordId={}" ,ordId);
+
         } else {
-            System.out.println("재고가 부족합니다.");
+            log.info("재고 부족");
         }
     }
 
     public void pay() {
         this.isPaid = true;
-        System.out.println("결제가 완료되었습니다.");
+        log.info("결제 완료");
     }
 }

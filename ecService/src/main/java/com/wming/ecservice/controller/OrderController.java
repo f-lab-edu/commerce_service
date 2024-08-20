@@ -1,9 +1,11 @@
 package com.wming.ecservice.controller;
 
 import com.wming.ecservice.service.OrderSerivce;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
