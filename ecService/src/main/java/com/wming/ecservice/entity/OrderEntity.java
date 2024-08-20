@@ -35,7 +35,7 @@ public class OrderEntity {
     this.isPaid = isPaid;
   }
 
-  public void processOrder() {
+  public void checkAndDecrementStock() {
     if (productEntity.getProductStock() >= quantity) {
       productEntity.reduceStock(quantity);
     } else {

@@ -29,9 +29,14 @@ public class OrderSerivce {
 
     //2. 주문 엔티티 생성 후 저장
     OrderEntity orderEntity = convertToEntity(productEntity, orderDTO);
+
+    //3. 재고 확인 후 재고 감소
+    orderEntity.checkAndDecrementStock();
+
+    //4. 주문 저장
     orderEntity = orderRepository.save(orderEntity);
 
-    //3. 저장된 주문의 ID를 이용해 결제 처리
+    //5. 저장된 주문의 ID를 이용해 결제 처리
     OrderDTO savedOrderDTO = convertToDTO(orderEntity);
     this.payOrder(savedOrderDTO);
   }
