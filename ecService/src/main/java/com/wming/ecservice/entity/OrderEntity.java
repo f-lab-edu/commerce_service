@@ -21,7 +21,7 @@ public class OrderEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long ordId;
+  private Long orderId;
 
   @ManyToOne // 주문은 하나의 상품과 매핑
   private ProductEntity productEntity;

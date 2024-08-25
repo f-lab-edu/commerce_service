@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class OrderDTO {
 
   /*주문 번호*/
-  private long ordId;
+  private long orderId;
 
   /*상품 번호*/
   private long productId;

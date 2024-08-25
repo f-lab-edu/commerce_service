@@ -45,7 +45,7 @@ public class OrderSerivce {
   public void payOrder(OrderDTO orderDto) {
 
     //1. 주문 조회
-    OrderEntity orderEntity = orderRepository.findById(orderDto.getOrdId())
+    OrderEntity orderEntity = orderRepository.findById(orderDto.getOrderId())
         .orElseThrow(() -> new IllegalArgumentException("주문이 존재하지 않습니다."));
 
     //2. 결제 처리 로직
@@ -66,7 +66,7 @@ public class OrderSerivce {
   /* Entity로 -> DTO로 변환 */
   public OrderDTO convertToDTO(OrderEntity orderEntity) {
     return OrderDTO.builder()
-        .ordId(orderEntity.getOrdId())
+        .orderId(orderEntity.getOrderId())
         .productId(orderEntity.getProductEntity().getProductId())
         .quantity(orderEntity.getQuantity())
         .build();
