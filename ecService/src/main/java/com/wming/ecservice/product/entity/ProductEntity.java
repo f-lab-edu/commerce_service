@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Table(name = "product")
+@Table(name = "PRODUCT")
 @Entity
 @Getter
 @NoArgsConstructor
@@ -39,4 +39,9 @@ public class ProductEntity {
     this.productStock -= quantity;
     log.debug("재고 감소 완료 : productStock={}", productStock);
   }
+
+  public boolean isStockAvaliable(int quantity) {
+    return this.productStock >= quantity;
+  }
+
 }

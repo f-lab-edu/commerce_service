@@ -1,51 +1,44 @@
 package com.wming.ecservice.order.entity;
 
-import com.wming.ecservice.product.entity.ProductEntity;
+import com.wming.ecservice.orderproduct.entity.OrderProductEntity;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@NoArgsConstructor
-@Entity
 @Slf4j
-@Builder
-@AllArgsConstructor
 @Getter
+@Table(name = "ORDERS")
+@Entity
 public class OrderEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long orderId;
 
-  @ManyToOne // 주문은 하나의 상품과 매핑
-  private ProductEntity productEntity;
+  @OneToMany(mappedBy = "orderEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+  private List<OrderProductEntity> orderProductEntities = new ArrayList<>();
 
-  private int quantity;
-  private boolean isPaid;
+  private LocalDateTime createTime; //주문일
 
-  public OrderEntity(ProductEntity productEntity, int quantity, boolean isPaid) {
-    this.productEntity = productEntity;
-    this.quantity = quantity;
-    this.isPaid = isPaid;
+  private BigDecimal totalPrice; //총 결제 금액
+
+  private OrderStatus orderStatus; //주문 상태
+
+  public OrderEntity() {
   }
 
-  public void checkAndDecrementStock() {
-    if (productEntity.getProductStock() >= quantity) {
-      productEntity.reduceStock(quantity);
-    } else {
-      log.debug("재고 부족");
-    }
-  }
-
-  public void pay() {
-    this.isPaid = true;
-    log.debug("결제 완료");
+  public OrderEntity(List<OrderProductEntity> orderProductEntityList, LocalDateTime now,
+      BigDecimal totalPrice, OrderStatus orderStatus) {
   }
 }

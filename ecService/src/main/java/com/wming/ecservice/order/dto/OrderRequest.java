@@ -1,5 +1,7 @@
 package com.wming.ecservice.order.dto;
 
+import com.wming.ecservice.orderproduct.dto.OrderProductRequest;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -9,15 +11,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @Builder
-public class OrderDTO {
+public class OrderRequest {
 
-  /*주문 번호*/
-  private long orderId;
+  /* 상품 리스트들 */
+  private List<OrderProductRequest> orderProducts;
 
-  /*상품 번호*/
-  private long productId;
-
-  /*상품 주문 수*/
-  private int quantity;
 
 }

@@ -1,6 +1,6 @@
 package com.wming.ecservice.order.controller;
 
-import com.wming.ecservice.order.dto.OrderDTO;
+import com.wming.ecservice.order.dto.OrderRequest;
 import com.wming.ecservice.order.service.OrderSerivce;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,8 +20,9 @@ public class OrderController {
   }
 
   @PostMapping("/createOrder")
-  public String createOrder(@RequestBody OrderDTO orderDto) {
-    orderSerivce.createOrder(orderDto);
+  public String createOrder(@RequestBody OrderRequest orderRequest) {
+    // 주문 정보 받는 거는  (상품 정보 product ,
+    orderSerivce.createOrder(orderRequest);
     return "주문이 완료되었습니다.";
   }
 }
