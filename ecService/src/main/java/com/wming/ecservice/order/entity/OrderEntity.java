@@ -40,5 +40,9 @@ public class OrderEntity {
 
   public OrderEntity(List<OrderProductEntity> orderProductEntityList, LocalDateTime now,
       BigDecimal totalPrice, OrderStatus orderStatus) {
+    this.orderProductEntities = orderProductEntityList;
+    this.createTime = now;
+    this.totalPrice = totalPrice;
+    this.orderStatus = orderStatus;
   }
 }

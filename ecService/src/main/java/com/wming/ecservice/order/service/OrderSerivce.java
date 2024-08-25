@@ -11,6 +11,7 @@ import com.wming.ecservice.product.entity.ProductEntity;
 import com.wming.ecservice.product.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,6 @@ public class OrderSerivce {
   private final OrderConverter orderConverter;
   private ProductRepository productRepository;
   private OrderRepository orderRepository;
-  private List<OrderProductEntity> orderProductEntityList;
 
   @Autowired
   public OrderSerivce(ProductRepository productRepository, OrderRepository orderRepository,
@@ -32,7 +32,6 @@ public class OrderSerivce {
     this.orderRepository = orderRepository;
     this.paymentService = paymentService;
     this.orderConverter = orderConverter;
-    this.orderProductEntityList = orderProductEntityList;
   }
 
   /*주문 생성*/
@@ -40,6 +39,7 @@ public class OrderSerivce {
   public void createOrder(OrderRequest orderRequest) {
 
     BigDecimal totalPrice = BigDecimal.ZERO;
+    List<OrderProductEntity> orderProductEntityList = new ArrayList<>();
 
     for (OrderProductRequest orderProduct : orderRequest.getOrderProducts()) {
       //1. 상품이 존재하는지 확인
