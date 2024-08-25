@@ -1,4 +1,4 @@
-package com.wming.ecservice.dto;
+package com.wming.ecservice.order.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

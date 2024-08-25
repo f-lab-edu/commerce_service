@@ -1,7 +1,7 @@
-package com.wming.ecservice.controller;
+package com.wming.ecservice.order.controller;
 
-import com.wming.ecservice.dto.OrderDTO;
-import com.wming.ecservice.service.OrderSerivce;
+import com.wming.ecservice.order.dto.OrderDTO;
+import com.wming.ecservice.order.service.OrderSerivce;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -1,10 +1,10 @@
-package com.wming.ecservice.service;
+package com.wming.ecservice.order.service;
 
-import com.wming.ecservice.dto.OrderDTO;
-import com.wming.ecservice.entity.OrderEntity;
-import com.wming.ecservice.entity.ProductEntity;
-import com.wming.ecservice.repository.OrderRepository;
-import com.wming.ecservice.repository.ProductRepository;
+import com.wming.ecservice.order.dto.OrderDTO;
+import com.wming.ecservice.order.entity.OrderEntity;
+import com.wming.ecservice.order.repository.OrderRepository;
+import com.wming.ecservice.product.entity.ProductEntity;
+import com.wming.ecservice.product.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

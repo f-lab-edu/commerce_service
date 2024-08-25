@@ -1,5 +1,6 @@
-package com.wming.ecservice.entity;
+package com.wming.ecservice.order.entity;
 
+import com.wming.ecservice.product.entity.ProductEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

@@ -1,4 +1,4 @@
-package com.wming.ecservice.entity;
+package com.wming.ecservice.product.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
