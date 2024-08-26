@@ -1,5 +1,6 @@
 package com.wming.ecservice.order.service;
 
+import com.wming.ecservice.common.exception.ResourceNotFoundException;
 import com.wming.ecservice.order.convert.OrderConverter;
 import com.wming.ecservice.order.dto.OrderRequest;
 import com.wming.ecservice.order.entity.OrderEntity;
@@ -13,9 +14,11 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class OrderSerivce {
 
@@ -38,6 +41,7 @@ public class OrderSerivce {
   @Transactional
   public void createOrder(OrderRequest orderRequest) {
 
+    log.info("주문 생성 시도: {}", orderRequest);
     BigDecimal totalPrice = BigDecimal.ZERO;
     List<OrderProductEntity> orderProductEntityList = new ArrayList<>();
 
@@ -45,7 +49,8 @@ public class OrderSerivce {
       //1. 상품이 존재하는지 확인
       ProductEntity productEntity = productRepository.findById(orderProduct.getProductId())
           .orElseThrow(
-              () -> new RuntimeException("상품 없음, 상품 이름 =" + orderProduct.getProductName()));
+              () -> new ResourceNotFoundException(
+                  "상품이 존재하지 않습니다. 상품 이름 =" + orderProduct.getProductName()));
 
       //2. 재고 확인
       this.checkStockAvailability(productEntity, orderProduct.getQuantity());
@@ -65,6 +70,7 @@ public class OrderSerivce {
     //4. 결제 처리
     boolean paymentResult = paymentService.processPayment(totalPrice);
 
+    /*이 부분은 추후 결제 서비스 로직 개발 시 뺄 예정*/
     if (!paymentResult) {
       throw new RuntimeException("결제에 실패했습니다.");
     }
