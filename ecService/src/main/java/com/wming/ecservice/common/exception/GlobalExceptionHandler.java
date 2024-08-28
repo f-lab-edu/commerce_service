@@ -14,5 +14,4 @@ public class GlobalExceptionHandler {
       ResourceNotFoundException e) {
     return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail(e.getMessage()));
   }
-
 }

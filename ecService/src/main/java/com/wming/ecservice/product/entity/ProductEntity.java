@@ -41,7 +41,7 @@ public class ProductEntity {
   }
 
   public boolean isStockAvaliable(int quantity) {
-    log.info("quantity ={}", quantity, "productStock={}", productStock);
+    log.info("주문 수량 ={}", quantity, "productStock={}", productStock);
     return productStock > quantity;
   }
 

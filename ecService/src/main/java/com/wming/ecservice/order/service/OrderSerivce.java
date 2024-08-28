@@ -1,5 +1,6 @@
 package com.wming.ecservice.order.service;
 
+import com.wming.ecservice.common.exception.ErrorMessage;
 import com.wming.ecservice.common.exception.ResourceNotFoundException;
 import com.wming.ecservice.order.convert.OrderConverter;
 import com.wming.ecservice.order.dto.OrderRequest;
@@ -52,7 +53,7 @@ public class OrderSerivce {
       ProductEntity productEntity = productRepository.findById(orderProduct.getProductId())
           .orElseThrow(
               () -> new ResourceNotFoundException(
-                  "상품이 존재하지 않습니다. 상품 이름 =" + orderProduct.getProductName()));
+                  ErrorMessage.PRODUCT_NOT_FOUND.getMessage(orderProduct.getProductName())));
 
       //2. 재고 확인 및 감소
       stockService.checkStockAvailability(productEntity, orderProduct.getQuantity());
