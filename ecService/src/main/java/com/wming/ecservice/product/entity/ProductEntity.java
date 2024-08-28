@@ -41,7 +41,8 @@ public class ProductEntity {
   }
 
   public boolean isStockAvaliable(int quantity) {
-    return this.productStock >= quantity;
+    log.info("quantity ={}", quantity, "productStock={}", productStock);
+    return productStock > quantity;
   }
 
 }

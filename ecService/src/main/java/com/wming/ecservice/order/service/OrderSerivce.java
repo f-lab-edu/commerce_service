@@ -26,15 +26,17 @@ public class OrderSerivce {
   private final OrderConverter orderConverter;
   private ProductRepository productRepository;
   private OrderRepository orderRepository;
+  private StockService stockService;
 
   @Autowired
   public OrderSerivce(ProductRepository productRepository, OrderRepository orderRepository,
       PaymentService paymentService, OrderConverter orderConverter,
-      List<OrderProductEntity> orderProductEntityList) {
+      List<OrderProductEntity> orderProductEntityList, StockService stockService) {
     this.productRepository = productRepository;
     this.orderRepository = orderRepository;
     this.paymentService = paymentService;
     this.orderConverter = orderConverter;
+    this.stockService = stockService;
   }
 
   /*주문 생성*/
@@ -52,8 +54,8 @@ public class OrderSerivce {
               () -> new ResourceNotFoundException(
                   "상품이 존재하지 않습니다. 상품 이름 =" + orderProduct.getProductName()));
 
-      //2. 재고 확인
-      this.checkStockAvailability(productEntity, orderProduct.getQuantity());
+      //2. 재고 확인 및 감소
+      stockService.checkStockAvailability(productEntity, orderProduct.getQuantity());
 
       //3. 총결제 금액 계산
       BigDecimal productPrice = productEntity.getProductPrice();
@@ -81,18 +83,5 @@ public class OrderSerivce {
 
     //6. 주문 저장
     orderRepository.save(orderEntity);
-  }
-
-  /*재고 확인을 위한 메서드*/
-  private void checkStockAvailability(ProductEntity productEntity,
-      int quantity) {
-
-    // 2_1.재고 확인
-    if (!productEntity.isStockAvaliable(productEntity.getProductStock())) {
-      throw new RuntimeException("재고가 충분하지 않습니다. 상품: " + productEntity.getProductName());
-    }
-
-    // 2_2. 실제 재고 감소
-    productEntity.reduceStock(quantity);
   }
 }
