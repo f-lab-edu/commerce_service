@@ -1,5 +1,6 @@
 package com.wming.ecservice.order.service;
 
+import com.wming.ecservice.common.exception.ErrorMessage;
 import com.wming.ecservice.common.exception.ResourceNotFoundException;
 import com.wming.ecservice.product.entity.ProductEntity;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,7 @@ public class StockService {
     // 2_1.재고 확인
     if (!productEntity.isStockAvaliable(quantity)) {
       throw new ResourceNotFoundException(
-          "재고가 충분하지 않습니다. 상품 이름 =" + productEntity.getProductName());
+          ErrorMessage.INSUFFICIENT_STOCK.getMessage(productEntity.getProductName()));
     }
 
     // 2_2. 실제 재고 감소
