@@ -37,7 +37,12 @@ public class ProductEntity {
 
   public void reduceStock(int quantity) {
     this.productStock -= quantity;
-    log.debug("재고 감소 완료 : productStock={}", productStock);
+    log.info("재고 감소 완료 : productStock={}", productStock);
+  }
+
+  public void increaseStock(int quantity) {
+    this.productStock += quantity;
+    log.info("재고 증가 완료 : productStock={}", productStock);
   }
 
   public boolean isStockAvaliable(int quantity) {

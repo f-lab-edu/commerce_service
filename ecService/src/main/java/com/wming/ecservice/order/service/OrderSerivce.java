@@ -1,6 +1,7 @@
 package com.wming.ecservice.order.service;
 
-import com.wming.ecservice.common.exception.ErrorMessage;
+import com.wming.ecservice.common.exception.FailedPaymentException;
+import com.wming.ecservice.common.exception.constants.ErrorMessage;
 import com.wming.ecservice.common.exception.ResourceNotFoundException;
 import com.wming.ecservice.order.convert.OrderConverter;
 import com.wming.ecservice.order.dto.OrderRequest;
@@ -15,6 +16,9 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -45,15 +49,27 @@ public class OrderSerivce {
   public void createOrder(OrderRequest orderRequest) {
 
     log.info("주문 생성 시도: {}", orderRequest);
+
     BigDecimal totalPrice = BigDecimal.ZERO;
     List<OrderProductEntity> orderProductEntityList = new ArrayList<>();
 
+    //1. 모든 상품 ProductId를 가져와 한 번에 조회
+    List<Long> productIds = orderRequest.getOrderProducts().stream()
+            .map(OrderProductRequest::getProductId)
+            .collect(Collectors.toList());
+
+    Map<Long, ProductEntity> productEntityMap = productRepository.findAllById(productIds)
+            .stream()
+            .collect(Collectors.toMap(ProductEntity::getProductId, productEntity -> productEntity));
+
     for (OrderProductRequest orderProduct : orderRequest.getOrderProducts()) {
-      //1. 상품이 존재하는지 확인
-      ProductEntity productEntity = productRepository.findById(orderProduct.getProductId())
-          .orElseThrow(
-              () -> new ResourceNotFoundException(
-                  ErrorMessage.PRODUCT_NOT_FOUND.getMessage(orderProduct.getProductName())));
+
+      //1. 상품 존재 확인
+      ProductEntity productEntity = productEntityMap.get(orderProduct.getProductId());
+      if(productEntity == null) {
+        throw new ResourceNotFoundException(
+                ErrorMessage.PRODUCT_NOT_FOUND.getMessage(orderProduct.getProductName()));
+      }
 
       //2. 재고 확인 및 감소
       stockService.checkAndReduceStock(productEntity, orderProduct.getQuantity());
@@ -63,7 +79,7 @@ public class OrderSerivce {
       BigDecimal quantity = BigDecimal.valueOf(orderProduct.getQuantity());
       totalPrice = totalPrice.add(productPrice.multiply(quantity));
 
-      //4. OrderProductEntity 생성해주기
+      //4. OrderProductEntity 생성
       orderProductEntityList.add(
           new OrderProductEntity(productEntity, productEntity.getProductPrice(),
               orderProduct.getQuantity())
@@ -73,9 +89,9 @@ public class OrderSerivce {
     //4. 결제 처리
     boolean paymentResult = paymentService.processPayment(totalPrice);
 
-    /*이 부분은 추후 결제 서비스 로직 개발 시 뺄 예정*/
     if (!paymentResult) {
-      throw new RuntimeException("결제에 실패했습니다.");
+          stockService.restoreStock(productEntityMap,orderRequest.getOrderProducts());
+      throw new FailedPaymentException(ErrorMessage.FAILED_PAYMENT.getMessage());
     }
 
     //5. 조회된 상품들과 DTO를 바탕으로 OrderEntity를 생성
