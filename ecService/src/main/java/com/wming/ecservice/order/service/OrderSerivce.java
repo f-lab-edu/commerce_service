@@ -1,5 +1,6 @@
 package com.wming.ecservice.order.service;
 
+import com.wming.ecservice.common.exception.ResourceNotFoundException;
 import com.wming.ecservice.order.convert.OrderConverter;
 import com.wming.ecservice.order.dto.OrderRequest;
 import com.wming.ecservice.order.entity.OrderEntity;
@@ -13,9 +14,11 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class OrderSerivce {
 
@@ -23,21 +26,24 @@ public class OrderSerivce {
   private final OrderConverter orderConverter;
   private ProductRepository productRepository;
   private OrderRepository orderRepository;
+  private StockService stockService;
 
   @Autowired
   public OrderSerivce(ProductRepository productRepository, OrderRepository orderRepository,
       PaymentService paymentService, OrderConverter orderConverter,
-      List<OrderProductEntity> orderProductEntityList) {
+      List<OrderProductEntity> orderProductEntityList, StockService stockService) {
     this.productRepository = productRepository;
     this.orderRepository = orderRepository;
     this.paymentService = paymentService;
     this.orderConverter = orderConverter;
+    this.stockService = stockService;
   }
 
   /*주문 생성*/
   @Transactional
   public void createOrder(OrderRequest orderRequest) {
 
+    log.info("주문 생성 시도: {}", orderRequest);
     BigDecimal totalPrice = BigDecimal.ZERO;
     List<OrderProductEntity> orderProductEntityList = new ArrayList<>();
 
@@ -45,10 +51,11 @@ public class OrderSerivce {
       //1. 상품이 존재하는지 확인
       ProductEntity productEntity = productRepository.findById(orderProduct.getProductId())
           .orElseThrow(
-              () -> new RuntimeException("상품 없음, 상품 이름 =" + orderProduct.getProductName()));
+              () -> new ResourceNotFoundException(
+                  "상품이 존재하지 않습니다. 상품 이름 =" + orderProduct.getProductName()));
 
-      //2. 재고 확인
-      this.checkStockAvailability(productEntity, orderProduct.getQuantity());
+      //2. 재고 확인 및 감소
+      stockService.checkStockAvailability(productEntity, orderProduct.getQuantity());
 
       //3. 총결제 금액 계산
       BigDecimal productPrice = productEntity.getProductPrice();
@@ -65,6 +72,7 @@ public class OrderSerivce {
     //4. 결제 처리
     boolean paymentResult = paymentService.processPayment(totalPrice);
 
+    /*이 부분은 추후 결제 서비스 로직 개발 시 뺄 예정*/
     if (!paymentResult) {
       throw new RuntimeException("결제에 실패했습니다.");
     }
@@ -75,18 +83,5 @@ public class OrderSerivce {
 
     //6. 주문 저장
     orderRepository.save(orderEntity);
-  }
-
-  /*재고 확인을 위한 메서드*/
-  private void checkStockAvailability(ProductEntity productEntity,
-      int quantity) {
-
-    // 2_1.재고 확인
-    if (!productEntity.isStockAvaliable(productEntity.getProductStock())) {
-      throw new RuntimeException("재고가 충분하지 않습니다. 상품: " + productEntity.getProductName());
-    }
-
-    // 2_2. 실제 재고 감소
-    productEntity.reduceStock(quantity);
   }
 }
