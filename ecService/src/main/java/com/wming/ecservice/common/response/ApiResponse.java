@@ -15,11 +15,7 @@ public class ApiResponse<T> {
     this.data = data;
   }
 
-  public static <T> ApiResponse<T> success(T data) {
-    return new ApiResponse<>(true, "요청에 성공했습니다", data);
-  }
-
-  public static <T> ApiResponse<T> successString(String message) {
+  public static <T> ApiResponse<T> success(String message) {
     return new ApiResponse<>(true, message, null);
   }
 

@@ -24,9 +24,8 @@ public class OrderController {
 
   @PostMapping(value = "/createOrder", produces = "application/json")
   public ResponseEntity<ApiResponse<String>> createOrder(@RequestBody OrderRequest orderRequest) {
-    // 주문 정보 받는 거는  (상품 정보 product ,
     orderSerivce.createOrder(orderRequest);
-    return ResponseEntity.ok(ApiResponse.successString(SuccessMessage.SUCCESS_ORDER.getMessage()));
+    return ResponseEntity.ok(ApiResponse.success(SuccessMessage.SUCCESS_ORDER.getMessage()));
   }
 }
 

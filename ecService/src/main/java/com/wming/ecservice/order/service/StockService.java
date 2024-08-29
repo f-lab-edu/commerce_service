@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 public class StockService {
 
   /*재고 확인을 위한 메서드*/
-  public void checkStockAvailability(ProductEntity productEntity,
+  public void checkAndReduceStock(ProductEntity productEntity,
       int quantity) {
 
     // 2_1.재고 확인

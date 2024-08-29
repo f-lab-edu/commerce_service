@@ -56,7 +56,7 @@ public class OrderSerivce {
                   ErrorMessage.PRODUCT_NOT_FOUND.getMessage(orderProduct.getProductName())));
 
       //2. 재고 확인 및 감소
-      stockService.checkStockAvailability(productEntity, orderProduct.getQuantity());
+      stockService.checkAndReduceStock(productEntity, orderProduct.getQuantity());
 
       //3. 총결제 금액 계산
       BigDecimal productPrice = productEntity.getProductPrice();
