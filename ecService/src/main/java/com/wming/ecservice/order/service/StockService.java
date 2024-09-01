@@ -1,13 +1,9 @@
 package com.wming.ecservice.order.service;
 
-import com.wming.ecservice.common.exception.constants.ErrorMessage;
 import com.wming.ecservice.common.exception.ResourceNotFoundException;
-import com.wming.ecservice.orderproduct.dto.OrderProductRequest;
+import com.wming.ecservice.common.exception.constants.ErrorMessage;
 import com.wming.ecservice.product.entity.ProductEntity;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 @Service
 public class StockService {
@@ -22,15 +18,5 @@ public class StockService {
     }
 
     productEntity.reduceStock(quantity);
-  }
-
-  /* 결제 실패 시, 재고 복구 */
-  public void restoreStock(Map<Long, ProductEntity> productEntityMap, List<OrderProductRequest> orderProductRequests) {
-      for(OrderProductRequest orderProductRequest : orderProductRequests) {
-        ProductEntity productEntity = productEntityMap.get(orderProductRequest.getProductId());
-        if(productEntity != null) {
-          productEntity.increaseStock(orderProductRequest.getQuantity());
-        }
-      }
   }
 }
