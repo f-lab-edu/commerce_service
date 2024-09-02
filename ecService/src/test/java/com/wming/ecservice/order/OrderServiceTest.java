@@ -1,12 +1,19 @@
 package com.wming.ecservice.order;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 
 import com.wming.ecservice.common.exception.ResourceNotFoundException;
+import com.wming.ecservice.order.controller.OrderController;
+import com.wming.ecservice.order.dto.OrderRequest;
+import com.wming.ecservice.order.service.OrderSerivce;
 import com.wming.ecservice.order.service.StockService;
+import com.wming.ecservice.orderproduct.dto.OrderProductRequest;
 import com.wming.ecservice.product.entity.ProductEntity;
 import com.wming.ecservice.product.repository.ProductRepository;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -16,21 +23,70 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 
 @SpringBootTest
-public class OrderServiceConcurrencyTest {
+public class OrderServiceTest {
 
   @Autowired
   private StockService stockService;
 
   @Autowired
+  private OrderController orderController;
+
+  @Autowired
   private ProductRepository productRepository;
+
+  @MockBean
+  private OrderSerivce orderSerivce;
+
+  @Test
+  @DisplayName("주문 실패 시 재고 원복 테스트")
+  public void testRollbackStock() {
+
+    //given
+    ArrayList<OrderProductRequest> orderProductRequests = new ArrayList<>();
+    orderProductRequests.add(new OrderProductRequest(1L, "상품", 3));
+    orderProductRequests.add(new OrderProductRequest(2L, "상품", 5));
+    OrderRequest orderRequest = new OrderRequest(orderProductRequests);
+
+    // 초기 재고 상태 확인
+    ProductEntity product1 = productRepository.findById(1L)
+        .orElseThrow(() -> new RuntimeException("상품1 없음"));
+    ProductEntity product2 = productRepository.findById(2L)
+        .orElseThrow(() -> new RuntimeException("상품2 없음"));
+
+    int initialStockProduct1 = product1.getProductStock();
+    int initialStockProduct2 = product2.getProductStock();
+
+    //when
+    doThrow(new RuntimeException("인위적인 결제 실패")).when(orderSerivce)
+        .createOrder(any(OrderRequest.class));
+
+    try {
+      orderController.createOrder(orderRequest);
+    } catch (RuntimeException e) {
+      // 예외 처리 로직
+      System.out.println("예외 발생: " + e.getMessage());
+    }
+
+    // then: 재고가 원복되었는지 확인
+    product1 = productRepository.findById(1L)
+        .orElseThrow(() -> new RuntimeException("상품1 없음"));
+    product2 = productRepository.findById(2L)
+        .orElseThrow(() -> new RuntimeException("상품2 없음"));
+
+    assertEquals(initialStockProduct1, product1.getProductStock(), "Product 1의 재고가 원복되지 않았습니다!");
+    assertEquals(initialStockProduct2, product2.getProductStock(), "Product 2의 재고가 원복되지 않았습니다!");
+
+  }
+
 
   @RepeatedTest(20)
   @Test
   @DisplayName("동시에 같은 상품의 재고를 확인하고 감소시키려 할 때")
-  public void testConcurrentOrders() throws InterruptedException {
+  public void testConcurrentReduceStock() throws InterruptedException {
 
     //Given
     int numberOfThreads = 200;
