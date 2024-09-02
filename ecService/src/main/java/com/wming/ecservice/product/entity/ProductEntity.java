@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Entity
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Slf4j
 public class ProductEntity {
 
@@ -46,7 +48,7 @@ public class ProductEntity {
   }
 
   public boolean isStockAvaliable(int quantity) {
-    return productStock > quantity;
+    return productStock >= quantity;
   }
 
 }
