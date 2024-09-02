@@ -97,6 +97,7 @@ public class OrderSerivce {
         totalPrice);
 
     //6. 주문 저장
+    log.info("주문 저장 : {}" , orderEntity.getOrderId());
     orderRepository.save(orderEntity);
   }
 }
