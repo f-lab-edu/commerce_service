@@ -28,9 +28,9 @@ public class OrderSerivce {
 
   private final PaymentService paymentService;
   private final OrderConverter orderConverter;
-  private ProductRepository productRepository;
-  private OrderRepository orderRepository;
-  private StockService stockService;
+  private final ProductRepository productRepository;
+  private final OrderRepository orderRepository;
+  private final StockService stockService;
 
   @Autowired
   public OrderSerivce(ProductRepository productRepository, OrderRepository orderRepository,
@@ -49,22 +49,61 @@ public class OrderSerivce {
 
     log.info("주문 생성 시도: {}", orderRequest);
 
-    BigDecimal totalPrice = BigDecimal.ZERO;
-    List<OrderProductEntity> orderProductEntityList = new ArrayList<>();
+    //1. 모든 상품을 조회
+    Map<Long, ProductEntity> productEntityMap = getProductEntities(orderRequest);
 
-    //1. 모든 상품 ProductId를 가져와 한 번에 조회
+    //2. 주문 상품 정보 생성 및 재고 감소 처리
+    List<OrderProductEntity> orderProductEntities = createOrderProductEntities(orderRequest,
+        productEntityMap);
+
+    // 3. 총결제 금액 계산
+    BigDecimal totalPrice = calculateTotalPrice(orderProductEntities);
+
+    //4. 결제
+    boolean paymentResult = paymentService.processPayment(totalPrice);
+
+    if (!paymentResult) {
+      throw new FailedPaymentException(ErrorMessage.FAILED_PAYMENT.getMessage());
+    }
+
+    //5. 주문 저장
+    saveOrder(orderProductEntities, totalPrice);
+  }
+  
+  /**
+   * 주문 요청에 포함된 상품 ID들을 사용하여 상품 정보를 조회.
+   *
+   * @param orderRequest 주문 요청 객체, 주문에 포함된 상품 리스트를 포함.
+   * @return Map<Long, ProductEntity> 주문에 포함된 상품 ID와 해당 상품 엔티티 간의 매핑을 반환.
+   */
+  private Map<Long, ProductEntity> getProductEntities(OrderRequest orderRequest) {
+
     List<Long> productIds = orderRequest.getOrderProducts().stream()
         .map(OrderProductRequest::getProductId)
         .collect(Collectors.toList());
 
-    Map<Long, ProductEntity> productEntityMap = productRepository.findAllById(productIds)
+    return productRepository.findAllById(productIds)
         .stream()
         .collect(Collectors.toMap(ProductEntity::getProductId, productEntity -> productEntity));
+  }
+
+  /**
+   * 회원 주문 데이터에 기반하여 주문 정보 생성.
+   *
+   * @param orderRequest     주문 요청 객체, 주문에 포함된 상품 리스트를 포함.
+   * @param productEntityMap 주문에 포함된 상품 엔티티 Map.
+   * @return List<OrderProductEntity> 주문 상품 정보 엔티티 반환.
+   */
+  private List<OrderProductEntity> createOrderProductEntities(OrderRequest orderRequest,
+      Map<Long, ProductEntity> productEntityMap) {
+
+    List<OrderProductEntity> orderProductEntities = new ArrayList<>();
 
     for (OrderProductRequest orderProduct : orderRequest.getOrderProducts()) {
 
       //1. 상품 존재 확인
       ProductEntity productEntity = productEntityMap.get(orderProduct.getProductId());
+
       if (productEntity == null) {
         throw new ResourceNotFoundException(
             ErrorMessage.PRODUCT_NOT_FOUND.getMessage(orderProduct.getProductName()));
@@ -73,31 +112,43 @@ public class OrderSerivce {
       //2. 재고 확인 및 감소
       stockService.checkAndReduceStock(productEntity, orderProduct.getQuantity());
 
-      //3. 총결제 금액 계산
-      BigDecimal productPrice = productEntity.getProductPrice();
-      BigDecimal quantity = BigDecimal.valueOf(orderProduct.getQuantity());
-      totalPrice = totalPrice.add(productPrice.multiply(quantity));
-
       //4. OrderProductEntity 생성
-      orderProductEntityList.add(
+      orderProductEntities.add(
           new OrderProductEntity(productEntity, productEntity.getProductPrice(),
               orderProduct.getQuantity())
       );
     }
+    return orderProductEntities;
+  }
 
-    //4. 결제 처리
-    boolean paymentResult = paymentService.processPayment(totalPrice);
+  /**
+   * 주문 상품 엔티티 객체를 통해 전체 계산 금액 환산.
+   *
+   * @param orderProductEntities 회원 주문 상품 매핑 엔티티 객체.
+   * @return BigDecimal 최종 주문 금액 계산값 반환.
+   */
+  private BigDecimal calculateTotalPrice(List<OrderProductEntity> orderProductEntities) {
+    BigDecimal totalPrice = BigDecimal.ZERO;
 
-    if (!paymentResult) {
-      throw new FailedPaymentException(ErrorMessage.FAILED_PAYMENT.getMessage());
+    for (OrderProductEntity orderProduct : orderProductEntities) {
+      BigDecimal productPrice = orderProduct.getPrice();
+      BigDecimal quantity = BigDecimal.valueOf(orderProduct.getQuantity());
+      totalPrice = totalPrice.add(productPrice.multiply(quantity));
     }
+    return totalPrice;
+  }
 
-    //5. 조회된 상품들과 DTO를 바탕으로 OrderEntity를 생성
-    OrderEntity orderEntity = orderConverter.convertToOrderEntity(orderProductEntityList,
+  /**
+   * 생성된 주문 저장
+   *
+   * @param orderProductEntities 하나의 주문번호와 매핑된 주문 상품 정보
+   * @param totalPrice           최종 결제 금액 정보
+   */
+  private void saveOrder(List<OrderProductEntity> orderProductEntities, BigDecimal totalPrice) {
+    OrderEntity orderEntity = orderConverter.convertToOrderEntity(orderProductEntities,
         totalPrice);
 
-    //6. 주문 저장
-    log.info("주문 저장 : {}" , orderEntity.getOrderId());
+    log.info("주문 저장 : {}", orderEntity.getOrderId());
     orderRepository.save(orderEntity);
   }
 }
